@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  freesscan-db:
+    image: postgres:15-alpine
+    container_name: freesscan-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-freesscan}
+      POSTGRES_USER: ${DB_USER:-scanner}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - freesscan-db-data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-scanner} -d ${DB_NAME:-freesscan}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - freesscan-network
+
+  freesscan-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: freesscan-api
+    environment:
+      DB_HOST: freesscan-db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-freesscan}
+      DB_USER: ${DB_USER:-scanner}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      PORT: ${API_PORT:-8080}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      freesscan-db:
+        condition: service_healthy
+    volumes:
+      - ./scanner:/app/scanner:ro
+      - freesscan-targets:/targets:ro
+    networks:
+      - freesscan-network
+    restart: unless-stopped
+
+  freesscan-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: freesscan-worker
+    environment:
+      DB_HOST: freesscan-db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-freesscan}
+      DB_USER: ${DB_USER:-scanner}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - ./scanner:/app/scanner
+      - freesscan-targets:/targets:ro
+    depends_on:
+      freesscan-db:
+        condition: service_healthy
+    networks:
+      - freesscan-network
+    command: --help
+
+volumes:
+  freesscan-db-data:
+    driver: local
+  freesscan-targets:
+    driver: local
+
+networks:
+  freesscan-network:
+    driver: bridge

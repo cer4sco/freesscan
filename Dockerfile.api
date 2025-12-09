@@ -1,0 +1,34 @@
+# freesscan - API Container
+FROM node:18-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 \
+        python3-pip \
+        postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy API code
+COPY api/package.json /app/
+RUN npm install --production
+
+COPY api/ /app/
+COPY scanner/ /app/scanner/
+
+# Install Python dependencies for scanner
+RUN pip3 install --no-cache-dir --break-system-packages \
+    psycopg2-binary
+
+# Use existing node user (UID 1000) - avoids conflicts on Mac/Podman
+RUN chown -R node:node /app
+
+USER node
+
+EXPOSE 8080
+
+ENV SCANNER_PATH=/app/scanner/main.py
+
+CMD ["node", "server.js"]

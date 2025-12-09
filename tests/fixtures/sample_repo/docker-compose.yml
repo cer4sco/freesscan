@@ -1,0 +1,28 @@
+# Fake docker-compose with hardcoded passwords - BAD PRACTICE
+# These are test credentials only
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: admin123456
+      POSTGRES_USER: dbuser
+      POSTGRES_DB: myapp
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass RedisPass789
+    ports:
+      - "6379:6379"
+
+  mongo:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: MongoSecret2023
+    ports:
+      - "27017:27017"

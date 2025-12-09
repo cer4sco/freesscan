@@ -1,0 +1,24 @@
+{
+  "name": "freesscan-tests",
+  "version": "1.0.0",
+  "description": "Test suite for freesscan",
+  "scripts": {
+    "test": "DB_HOST=localhost DB_PORT=5432 DB_USER=scanner DB_PASSWORD=changeme DB_NAME=freesscan mocha --timeout 15000 --recursive api/**/*.test.js scanner/**/*.test.js",
+    "test:api": "DB_HOST=localhost DB_PORT=5432 DB_USER=scanner DB_PASSWORD=changeme DB_NAME=freesscan mocha --timeout 15000 --recursive api/**/*.test.js",
+    "test:scanner": "mocha --timeout 15000 --recursive scanner/**/*.test.js",
+    "test:coverage": "nyc npm test",
+    "integration": "./integration/run-all.sh"
+  },
+  "author": "cer4sco",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.3.10",
+    "chai-http": "^4.4.0",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "sinon": "^21.0.0"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}

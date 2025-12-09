@@ -1,0 +1,31 @@
+{
+  "description": "Expected findings when port scanning localhost",
+  "note": "Results will vary based on what services are running locally",
+  "common_expected_ports": [
+    {
+      "port": 5432,
+      "service": "PostgreSQL",
+      "severity": "HIGH",
+      "reason": "Database exposed (should be bound to localhost only)"
+    },
+    {
+      "port": 3000,
+      "service": "HTTP-Alt",
+      "severity": "MEDIUM",
+      "reason": "API server running for development"
+    },
+    {
+      "port": 22,
+      "service": "SSH",
+      "severity": "LOW",
+      "reason": "SSH is expected on development machines"
+    }
+  ],
+  "acceptable_finding_count": "1-10",
+  "validation_rules": [
+    "Port scanner should not hang or leak sockets",
+    "All open ports should have severity assigned",
+    "Banner grabbing should be attempted for all ports",
+    "Results should be returned within reasonable time (<30s for common ports)"
+  ]
+}
